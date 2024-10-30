@@ -123,7 +123,6 @@ begin
                         rx_active <= '1';
                         rx_tick_count <= 0;
                         rx_bit_count <= 0;
---                        rx_shift_reg <= rx & rx_shift_reg(9 downto 1); 
                     end if;
                 
                 else -- rx_active = '1'
@@ -132,9 +131,6 @@ begin
                         if rx_tick_count = BAUD_TICKS/2 then
                             rx_shift_reg <= rx & rx_shift_reg(9 downto 1);  -- Shift in received bit
                             if rx_bit_count = 9 then  -- Stop bit received
-        --                                rx_data <= rx_shift_reg(8 downto 1);  -- Extract data byte
---                                rx_sample_flag <= '1';
-        --                                rx_ready <= '1';
                                 rx_data <= rx_shift_reg(9 downto 2);  -- Extract data byte
                                 rx_ready <= '1';
                                 rx_active <= '0';
@@ -147,13 +143,6 @@ begin
                     else     
                         rx_tick_count <= 0;  
                     end if;      
---                   if rx_sample_flag = '1' then
---                        rx_data <= rx_shift_reg(8 downto 1);  -- Extract data byte
---                        rx_ready <= '1';
---                        rx_sample_flag <= '0';
---                    else
---                        rx_ready <= '0'; 
---                    end if;
                 end if;                                  
             end if;
         end if;

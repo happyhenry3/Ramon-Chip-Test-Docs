@@ -46,7 +46,7 @@ architecture Behavioral of Config_In_Shifter is
    -- Internal signal to represent the 56-bit shift register
     signal shift_reg : std_logic_vector(55 downto 0) := (others => '0');
 --    signal config_clk : std_logic := '0';
-    signal config_clk_en_sig : std_logic := '0';
+    signal config_clk_en_sig, config_clk_en_next : std_logic := '0';
     signal load_position, load_position_next : integer range 0 to 7; -- To track load position for 8-bit chunks
     signal shift_count, shift_count_next : integer range 0 to 55 := 0; -- To count bits shifted out
     
@@ -130,27 +130,42 @@ begin
     begin 
         load_position_next <= load_position;
         shift_count_next <= shift_count;
-        if reset = '1' then
-            config_clk_en_sig <= '0';
-        else      
-            if uart_rx_ready = '1' then
-                load_position_next <= load_position + 1;
-            end if;
-            if config_clk_reg = '1' then
-                shift_count_next <= shift_count + 1;
-            end if;
-            if load_position = 7 then
-                config_clk_en_sig <= '1';
-                load_position_next <= 0;      
-            else 
-                if shift_count = 55 then
-                    config_clk_en_sig <= '0';
-                    shift_count_next <= 0;          
-                end if;    
-            end if;
-         end if; 
-    end process;         
+        if uart_rx_ready = '1' then
+            load_position_next <= load_position + 1;
+        end if;
+        if config_clk_reg = '1' then
+            shift_count_next <= shift_count + 1;
+        end if;
+        if load_position = 7 then
+            load_position_next <= 0;      
+        else 
+            if shift_count = 55 then
+                shift_count_next <= 0;          
+            end if;    
+        end if; 
+    end process;  
     
+    config_clk_en_seq: process(reset, clk)
+    begin
+        if rising_edge(clk) then
+            if reset = '1' then
+                config_clk_en_sig <= '0';
+            else config_clk_en_sig <= config_clk_en_next;
+            end if;
+        end if; 
+    end process;
+    
+    config_clk_en_comb: process(load_position, shift_count)
+    begin
+        config_clk_en_next <= config_clk_en_sig;
+        if load_position = 7 then
+            config_clk_en_next <= '1';
+        else 
+            if shift_count = 55 then
+                config_clk_en_next <= '0';
+            end if;    
+        end if;
+    end process;
 --    load_position_process: process(reset, uart_rx_ready)
 --    begin
 --        if reset = '1' then

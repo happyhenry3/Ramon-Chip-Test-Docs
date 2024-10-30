@@ -47,7 +47,7 @@ entity Top is
            tdc_reset : out STD_LOGIC;
            read_enable : out STD_LOGIC;
            data_clk : out STD_LOGIC;
-           rx_ready_test: out STD_LOGIC);
+           rx_data_test: out STD_LOGIC_VECTOR(7 downto 0));
            
 --           test_fpga_sw7 : in STD_LOGIC;
 --           test_fpga_led7 : out STD_LOGIC;
@@ -78,6 +78,7 @@ architecture Behavioral of Top is
     signal uart_rx_ready_sig : STD_LOGIC;
     signal uart_tx_start_sig : STD_LOGIC;
     signal uart_tx_busy_sig : STD_LOGIC;
+    signal uart_rx_data_test_sig: STD_LOGIC;
      
 
 begin
@@ -102,11 +103,13 @@ begin
         begin
             if rising_edge(clk_100M) then
                 if reset = '1' then
-                    rx_ready_test <= '0';
+                    rx_data_test <= "00000000";
                 else 
-                    if uart_rx_ready_sig = '1' then   
-                        rx_ready_test <= '1';
-                    end if;
+                    for i in 0 to 7 loop
+                        if uart_rx_data_sig(i) = '1' then   
+                            rx_data_test(i) <= '1';
+                        end if;
+                    end loop;    
                 end if;
             end if;
         end process;

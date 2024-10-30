@@ -36,7 +36,8 @@ entity Toptop is
            resetn : in STD_LOGIC;
            uart_rx : in STD_LOGIC;
            uart_tx : out STD_LOGIC;
-           rx_ready_test: out STD_LOGIC);
+--           rx_ready_test: out STD_LOGIC;
+           rx_data_test: out STD_LOGIC_VECTOR(7 downto 0));
 --           config_data_out : out STD_LOGIC;
 --           tdc_data_out : out STD_LOGIC);
 end Toptop;
@@ -77,7 +78,7 @@ begin
             tdc_reset         => tdc_reset_sig,     -- TDC reset signal
             read_enable       => read_enable_sig,   -- Read enable signal
             data_clk          => data_clk_sig,       -- Data clock signal
-            rx_ready_test      => rx_ready_test
+            rx_data_test      => rx_data_test
         );
         
     Chip: entity work.Chip
@@ -95,7 +96,19 @@ begin
             tdc_config_data_out  => config_data_out_sig  -- Config data output (internal signal)
         );
         
---        config_data_out <= config_data_out_sig;
+--            keep_on_process: process(clk_100M, resetn)
+--        begin
+--            if rising_edge(clk_100M) then
+--                if resetn = '0' then
+--                    config_data_in_test <= '0';
+--                else 
+--                    if config_data_sig = '1' then   
+--                        config_data_in_test <= '1';
+--                    end if;
+--                end if;
+--            end if;
+--        end process;
+--        config_data_out_test <= config_data_out_sig;
 --        tdc_data_out <= tdc_data_out_sig;
         
         
