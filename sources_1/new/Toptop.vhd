@@ -83,16 +83,16 @@ begin
         
     Chip: entity work.Chip
         Port map (
-            resetn => resetn,
-            tdc_input            => tdc_input_sig,         -- Input from Top
-            tdc_reset            => tdc_reset_sig,         -- Reset from Top
-            read_enable          => read_enable_sig,       -- Read enable from Top
-            tdc_data_clk_in      => data_clk_sig,          -- Data clock from Top
-            tdc_config_load_in   => config_load_sig,       -- Config load signal from Top
+--            resetn => resetn,
+--            tdc_input            => tdc_input_sig,         -- Input from Top
+--            tdc_reset            => tdc_reset_sig,         -- Reset from Top
+--            read_enable          => read_enable_sig,       -- Read enable from Top
+--            tdc_data_clk_in      => data_clk_sig,          -- Data clock from Top
+--            tdc_config_load_in   => config_load_sig,       -- Config load signal from Top
             tdc_config_clk_in    => config_clk_sig,        -- Config clock signal from Top
             tdc_config_data_in   => config_data_sig,       -- Config data signal from Top
-            ro_out               => ro_out_sig,            -- RO output (internal signal)
-            tdc_data_out         => tdc_data_out_sig,      -- TDC data output (internal signal)
+--            ro_out               => ro_out_sig,            -- RO output (internal signal)
+--            tdc_data_out         => tdc_data_out_sig,      -- TDC data output (internal signal)
             tdc_config_data_out  => config_data_out_sig  -- Config data output (internal signal)
         );
         

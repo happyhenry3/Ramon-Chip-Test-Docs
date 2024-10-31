@@ -33,16 +33,16 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity Chip is
     Port ( 
-           resetn : in STD_LOGIC;
-           tdc_input : in STD_LOGIC;
-           tdc_reset : in STD_LOGIC;
-           read_enable : in STD_LOGIC;
-           tdc_data_clk_in : in STD_LOGIC;
-           tdc_config_load_in : in STD_LOGIC;
+--           resetn : in STD_LOGIC;
+--           tdc_input : in STD_LOGIC;
+--           tdc_reset : in STD_LOGIC;
+--           read_enable : in STD_LOGIC;
+--           tdc_data_clk_in : in STD_LOGIC;
+--           tdc_config_load_in : in STD_LOGIC;
            tdc_config_clk_in : in STD_LOGIC;
            tdc_config_data_in : in STD_LOGIC;
-           ro_out : out STD_LOGIC;
-           tdc_data_out : out STD_LOGIC;
+--           ro_out : out STD_LOGIC;
+--           tdc_data_out : out STD_LOGIC;
            tdc_config_data_out : out STD_LOGIC);
 end Chip;
 
@@ -53,11 +53,11 @@ begin
     -- Instantiate the config block (Shift_Register_Array)
     config_block_inst: entity work.Config_Block
         port map (
-            resetn => resetn,
+--            resetn => resetn,
             shift_clk_in    => tdc_config_clk_in,     -- Clock input for the config block
-            shift_load_in   => tdc_config_load_in,    -- Load input for the config block
+--            shift_load_in   => tdc_config_load_in,    -- Load input for the config block
             shift_data_in   => tdc_config_data_in,    -- Data input for the config block
-            shift_data_out  => tdc_config_data_out    -- Data output from the config block
+            shift_data_next  => tdc_config_data_out    -- Data output from the config block
         );
 
 end Structural;

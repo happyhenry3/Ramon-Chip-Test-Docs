@@ -24,17 +24,17 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity Config_Block is
     Port (
-        resetn : in std_logic;
+--        resetn : in std_logic;
         shift_clk_in    : in  std_logic;
-        shift_load_in   : in  std_logic;
+--        shift_load_in   : in  std_logic;
         shift_data_in   : in  std_logic;
-        shift_data_out  : out std_logic
+        shift_data_next  : out std_logic
     );
 end Config_Block;
 
 architecture Behavioral of Config_Block is
     -- Declare an array of signals to connect the config cells
-    signal shift_data_signals : std_logic_vector(56 downto 0) := (others => '0');
+    signal shift_data_signals : std_logic_vector(56 downto 0);
  -- Inter-cell signals for data, 56 cells need 57 data points
     signal shift_clk_signals  : std_logic_vector(55 downto 0); -- Clock signal for each cell
     signal shift_load_signals : std_logic_vector(55 downto 0); -- Load signal for each cell
@@ -48,20 +48,20 @@ begin
 --    end process;
     -- First cell input connection
     shift_data_signals(0) <= shift_data_in;
-    shift_clk_signals  <= (others => shift_clk_in);
-    shift_load_signals <= (others => shift_load_in);
+--    shift_clk_signals  <= (others => shift_clk_in);
+--    shift_load_signals <= (others => shift_load_in);
 
     -- Last cell output connection
-    shift_data_out <= shift_data_signals(56); -- Connect the last data signal to the output
+    shift_data_next <= shift_data_signals(56); -- Connect the last data signal to the output
 
     -- Generate loop for 56 config cells
     gen_shift_cells: for i in 0 to 55 generate
         config_cell_inst: entity work.Config_Cell
             port map (
-                shift_clk       => shift_clk_signals(i),       -- Clock input
-                shift_load      => shift_load_signals(i),      -- Load input
+                shift_clk       => shift_clk_in,       -- Clock input
+--                shift_load      => shift_load_in,      -- Load input
                 shift_data_prev => shift_data_signals(i),      -- Data input
-                shift_data_next        => shift_data_signals(i+1)     -- Data output
+                shift_data_next => shift_data_signals(i+1)     -- Data output
             );
     end generate;
 

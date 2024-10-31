@@ -48,7 +48,7 @@ architecture Behavioral of Config_In_Shifter is
 --    signal config_clk : std_logic := '0';
     signal config_clk_en_sig, config_clk_en_next : std_logic := '0';
     signal load_position, load_position_next : integer range 0 to 7; -- To track load position for 8-bit chunks
-    signal shift_count, shift_count_next : integer range 0 to 55 := 0; -- To count bits shifted out
+    signal shift_count, shift_count_next : integer range 0 to 56 := 0; -- To count bits shifted out
     
     signal clk_div_counter : integer := 0;
     signal config_clk_reg  : STD_LOGIC := '1';
@@ -65,7 +65,6 @@ begin
                  if rising_edge(clk) then
                     if config_clk_en_sig = '1' then
                         if clk_div_counter = (CLK_DIV - 1) then
-        --                    config_clk_reg <= not config_clk_reg;  -- Toggle 200kHz clock
                             config_clk_reg <= '1';
                             clk_div_counter <= 0;
                             
@@ -85,30 +84,18 @@ begin
         if reset = '1' then
             -- Reset the shift register and load position
             shift_reg <= (others => '0');
---            load_position <= 0;
---            config_clk_en_sig <= '0';
---            shift_count <= 0;
+            last_bit_out <= '0';
         else 
             if uart_rx_ready = '1' then
                 -- Load data into the appropriate 8-bit section of the shift register
                 shift_reg((load_position + 1) * 8 - 1 downto load_position * 8) <= uart_rx_data;
                 
             end if;
-                        -- Once fully populated, enable config_clk for shifting out
---            if load_position = 7 and shift_count = 0 then
---                config_clk_en_sig <= '1';
---            end if;
         end if;
             if config_clk_en_sig = '1' and rising_edge(config_clk_reg) then
                  -- Shift out 1 bit at a time from the shift register
                 shift_reg <= '0' & shift_reg(55 downto 1);
---                shift_count <= shift_count + 1;
-
-            -- After all bits are shifted out, disable config_clk
---             if shift_count = 55 then
---                 config_clk_en_sig <= '0';
---                 shift_count <= 0;    
---               end if;     
+                last_bit_out <= shift_reg(0);    
             end if;
     end process;
     
@@ -139,7 +126,7 @@ begin
         if load_position = 7 then
             load_position_next <= 0;      
         else 
-            if shift_count = 55 then
+            if shift_count = 56 then
                 shift_count_next <= 0;          
             end if;    
         end if; 
@@ -161,47 +148,9 @@ begin
         if load_position = 7 then
             config_clk_en_next <= '1';
         else 
-            if shift_count = 55 then
+            if shift_count = 56 then
                 config_clk_en_next <= '0';
             end if;    
         end if;
     end process;
---    load_position_process: process(reset, uart_rx_ready)
---    begin
---        if reset = '1' then
---            load_position <= 0;
---        else
---            if uart_rx_ready = '1' then
---                load_position <= load_position + 1;
---            end if;
---            if load_position = 7 then
-----                config_clk_en <= '1';
---                load_position <= 0; -- Reset for next load sequence
---            end if;
---        end if;
---    end process; 
-     
-  -- Process to shift data out of the shift register on config_clk edges
---    process(config_clk_reg, reset)
---    begin
---        if reset = '1' then
---            shift_count <= 0;
---            config_clk_en <= '0';
---        elsif rising_edge(config_clk_reg) and config_clk_en = '1' then
---            -- Shift out 1 bit at a time from the shift register
---            shift_reg <= '0' & shift_reg(55 downto 1);
---            shift_count <= shift_count + 1;
-
---            -- After all bits are shifted out, disable config_clk
---            if shift_count = 55 then
---                config_clk_en <= '0';
---                shift_count <= 0;
-                
---            end if;
---        end if;
---    end process;
-
-    -- Output the last bit of the shift register
-    last_bit_out <= shift_reg(0);
-
 end Behavioral;

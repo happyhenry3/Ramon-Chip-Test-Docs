@@ -147,7 +147,7 @@ begin
 
     -- Output assignments
     config_clk <= config_clk_sig;
-    config_load   <= config_load_sig;
+--    config_load   <= config_load_sig;
 --    config_data <= config_data_in_sig;
     
     TDC_Control: entity work.TDC_Control

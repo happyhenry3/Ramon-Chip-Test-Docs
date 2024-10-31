@@ -57,7 +57,6 @@ architecture Behavioral of UART is
     -- Receiver signals
     signal rx_tick_count: integer := 0;      -- Counter for baud ticks
     signal rx_bit_count : integer := 0;      -- Counter for received bits
-    signal rx_sample_count : integer := 0;   -- Counter for mid-bit sampling
     signal rx_shift_reg : STD_LOGIC_VECTOR(9 downto 0) := "0000000000";  -- Shift register for start, data, stop bits
     signal rx_active    : STD_LOGIC := '0';  -- Receiver active flag
     signal rx_sample_flag : STD_LOGIC := '0';
@@ -115,7 +114,6 @@ begin
                 rx_active <= '0';
                 rx_bit_count <= 0;
                 rx_tick_count <= 0;
-                rx_sample_count <= 0;
             else
                 rx_ready <= '0'; 
                 if rx_active = '0' then

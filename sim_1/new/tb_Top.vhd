@@ -140,11 +140,11 @@ begin
             tdc_input         => tdc_input,        -- TDC input signal
             tdc_reset         => tdc_reset,        -- TDC reset signal
             read_enable       => read_enable,      -- Read enable signal
-            data_clk          => data_clk,         -- Data clock signal
-            test_fpga_sw7     => test_fpga_sw7,    -- FPGA switch 7 input
-            test_fpga_led7    => test_fpga_led7,   -- FPGA LED 7 output
-            test_fpga_buttonc => test_fpga_buttonc,-- FPGA button center input
-            test_fpga_led6    => test_fpga_led6    -- FPGA LED 6 output
+            data_clk          => data_clk        -- Data clock signal
+--            test_fpga_sw7     => test_fpga_sw7,    -- FPGA switch 7 input
+--            test_fpga_led7    => test_fpga_led7,   -- FPGA LED 7 output
+--            test_fpga_buttonc => test_fpga_buttonc,-- FPGA button center input
+--            test_fpga_led6    => test_fpga_led6    -- FPGA LED 6 output
         );
 
     -- Clock generation process: 100MHz clock (period = 10ns)

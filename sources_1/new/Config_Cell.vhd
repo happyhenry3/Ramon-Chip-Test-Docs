@@ -34,9 +34,8 @@ use IEEE.STD_LOGIC_1164.ALL;
 entity Config_Cell is
     Port ( shift_data_prev : in STD_LOGIC;
            shift_clk : in STD_LOGIC;
-           shift_load : in STD_LOGIC;
-           shift_data_next : inout STD_LOGIC;
-           data_out : out STD_LOGIC);
+--           shift_load : in STD_LOGIC;
+           shift_data_next : out STD_LOGIC);
 end Config_Cell;
 
 architecture Behavioral of Config_Cell is
@@ -51,12 +50,12 @@ begin
         end if;
     end process;
     -- Second Flip-Flop (DFF)
-    process(shift_load)
-    begin
-        if rising_edge(shift_load) then
-            data_out <= shift_data_next_sig;  -- Data propagates from shift_data_next to data_out
-        end if;
-    end process;
+--    process(shift_load)
+--    begin
+--        if rising_edge(shift_load) then
+--            data_out <= shift_data_next_sig;  -- Data propagates from shift_data_next to data_out
+--        end if;
+--    end process;
 
     shift_data_next <= shift_data_next_sig;
 

@@ -41,7 +41,7 @@ architecture Behavioral of Toptop_tb is
     constant CLK_PERIOD       : time := 10 ns;
     constant baud_period : time := 104.167 us;
     type uart_data_array is array (0 to 6) of STD_LOGIC_VECTOR(7 downto 0);
-    constant uart_data : uart_data_array := (x"48", x"65", x"6c", x"6c", x"6f", x"57", x"6f"); --"HelloWo"
+    constant uart_data : uart_data_array := (x"49", x"65", x"6c", x"6c", x"6f", x"57", x"6f"); --"HelloWo"
 
 begin
 

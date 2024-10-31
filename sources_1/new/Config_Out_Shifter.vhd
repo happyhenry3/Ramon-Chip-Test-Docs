@@ -51,7 +51,7 @@ architecture Behavioral of Config_Out_Shifter is
     signal clk_delay_count_0 : integer := 0;
     signal config_clk_rising_flag : std_logic := '0';
     signal config_clk_falling_flag : std_logic := '0';
-    signal config_clk_en_delayed : std_logic := '0';
+--    signal config_clk_en_delayed : std_logic := '0';
     constant DELAY_250 : integer := 25000;
     signal clk_div_counter : integer := 0;
     signal config_clk_delayed  : STD_LOGIC := '0';
@@ -61,65 +61,6 @@ architecture Behavioral of Config_Out_Shifter is
     signal uart_tx_start_pulse: STD_LOGIC := '0';
     constant CLK_DIV : integer := 25000;
 begin
-
---    process_delay_en: process(clk, config_clk_en)
---    begin
---        if rising_edge(config_clk_en) and config_clk_falling_flag = '0' then
-----            config_clk_rising_flag <= '1';
---            config_clk_en_delayed <= config_clk_en;
---        end if;        
---        if falling_edge(config_clk_en) then 
---            config_clk_falling_flag <= '1';
---        end if; 
-----        if config_clk_rising_flag = '1' then
-----            clk_delay_count_1 <= clk_delay_count_1 + 1;
-----            if clk_delay_count_1 = (DELAY_250-1) then
-----                config_clk_en_delayed <= '1';
-----                clk_delay_count_1 <= 0;
-----                config_clk_rising_flag <= '0';
-----            end if;
-----        end if;
---        if config_clk_falling_flag = '1' then
---            clk_delay_count_0 <= clk_delay_count_0 + 1;
---            if clk_delay_count_0 = (DELAY_250*2-1) then
---                config_clk_en_delayed <= '0';
---                clk_delay_count_0 <= 0;
---                config_clk_falling_flag <= '0';
---            end if;
---        end if;
---    end process;
-    
-    process(clk, reset)
-    begin
-        if reset = '1' then
-            config_clk_en_delayed <= '0';
-            clk_delay_count_0 <= 0;
-            config_clk_falling_flag <= '0';
-        else
-           if rising_edge(clk) then
-            -- Detect rising edge of config_clk_en when no falling edge has been detected
-                if config_clk_en = '1' and config_clk_falling_flag = '0' then
-                    config_clk_en_delayed <= '1';
-                end if;
-    
-                -- Detect falling edge of config_clk_en and set the flag
-                if config_clk_en = '0' and config_clk_en_delayed = '1' then
-                    config_clk_falling_flag <= '1';
-                end if;
-    
-                -- Handle delay after falling edge has been detected
-                if config_clk_falling_flag = '1' then
-                    clk_delay_count_0 <= clk_delay_count_0 + 1;
-                    if clk_delay_count_0 = (DELAY_250*2 - 1) then
-                        config_clk_en_delayed <= '0';
-                        clk_delay_count_0 <= 0;
-                        config_clk_falling_flag <= '0';
-                    end if;
-                end if;
-            end if;
-        end if;
-    end process;
-
     
     config_clk_gen_process: process(clk)
     begin
@@ -129,9 +70,8 @@ begin
                 config_clk_delayed <= '1';
                 
             else
-                if config_clk_en_delayed = '1' then
+                if config_clk_en = '1' then
                     if clk_div_counter = (CLK_DIV - 1) then
-    --                    config_clk_delayed <= not config_clk_delayed; 
                         config_clk_delayed <= '1';
                         clk_div_counter <= 0;
                         
@@ -144,7 +84,7 @@ begin
         end if;
     end process;
     
-    process(config_clk_delayed, reset)
+    process(config_clk_delayed, reset, uart_tx_start_pulse)
     begin
         if reset = '1' then
             -- Reset the shift register
@@ -156,14 +96,16 @@ begin
             if rising_edge(config_clk_delayed) then
                 shift_reg <= data_back & shift_reg(55 downto 1);  -- Shift and load new byte
                 shift_counter <= shift_counter + 1;
-                if shift_counter = 8 then
-                    shift_counter <= 1;
-                    uart_tx_data_sig <= shift_reg (55 downto 48);
+                if shift_counter = 7 then
+                    shift_counter <= 0;
                     uart_tx_start_sig <= '1';
                 else 
                     uart_tx_start_sig <= '0';    
                 end if;
             end if;
+            if uart_tx_start_pulse = '1' then
+                uart_tx_data_sig <= shift_reg (55 downto 48);         
+            end if;     
         end if; 
     end process;
 

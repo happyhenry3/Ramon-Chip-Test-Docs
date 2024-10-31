@@ -35,9 +35,9 @@ architecture Behavioral of Top_tb is
     signal tx_busy_test : STD_LOGIC;
 
     -- Characters in "Hello" in ASCII
-    type uart_data_array is array (0 to 4) of STD_LOGIC_VECTOR(7 downto 0);
-    constant uart_data : uart_data_array := (x"48", x"46", x"48", x"46", x"48");
-
+    type uart_data_array is array (0 to 6) of STD_LOGIC_VECTOR(7 downto 0);
+    constant uart_data : uart_data_array := (x"49", x"65", x"6c", x"6c", x"6f", x"57", x"6f");
+    constant config_clk_period : time := 250 us; --500 us
 begin
 
     -- Instantiate the Unit Under Test (UUT)
@@ -83,28 +83,38 @@ begin
 
         -- Start sending the UART data (the string "Hello" in ASCII)
         -- ASCII values for "Hello" are: 'H' = 0x48, 'e' = 0x65, 'l' = 0x6C, 'l' = 0x6C, 'o' = 0x6F
-        for j in 0 to 4 loop
+        for m in 0 to 6 loop
+            wait for baud_period;
             -- Start bit
             uart_rx <= '0';
             wait for baud_period;
 
             -- Sending 8 data bits for each character in "Hello"
-            for i in 0 to 7 loop
-                uart_rx <= uart_data(j)(i);
+            for n in 0 to 7 loop
+                uart_rx <= uart_data(m)(n);
                 wait for baud_period;
             end loop;
 
             -- Stop bit
             uart_rx <= '1';
-            wait for baud_period;
+            
         end loop;
 
         -- Check if tx_busy_test remains high after "Hello" transmission
-        wait for clk_period * 100;
+--        wait for clk_period * 100;
+--        wait for config_clk_period;
+        wait for 52 us;
+        for j in 0 to 6 loop
+            -- Sending 8 data bits for each character in "Hello"
+            for i in 0 to 7 loop
+                config_data_back <= uart_data(j)(i);
+                wait for config_clk_period;
+            end loop;
 
-        assert (tx_busy_test = '1')
-        report "tx_busy_test did not remain high after transmission."
-        severity failure;
+        end loop;
+--        assert (tx_busy_test = '1')
+--        report "tx_busy_test did not remain high after transmission."
+--        severity failure;
 
         -- End simulation
         wait;
