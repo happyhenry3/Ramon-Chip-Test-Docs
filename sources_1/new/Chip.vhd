@@ -48,17 +48,22 @@ end Chip;
 
 
 architecture Structural of Chip is
+    signal shift_data_in_sig: STD_LOGIC;
+    signal shift_data_out_sig: STD_LOGIC;
+    signal shift_clk_in_sig: STD_LOGIC;
 begin
-
+    
     -- Instantiate the config block (Shift_Register_Array)
     config_block_inst: entity work.Config_Block
         port map (
 --            resetn => resetn,
-            shift_clk_in    => tdc_config_clk_in,     -- Clock input for the config block
+            shift_clk_in    => shift_clk_in_sig,     -- Clock input for the config block
 --            shift_load_in   => tdc_config_load_in,    -- Load input for the config block
-            shift_data_in   => tdc_config_data_in,    -- Data input for the config block
-            shift_data_next  => tdc_config_data_out    -- Data output from the config block
+            shift_data_in   => shift_data_in_sig,    -- Data input for the config block
+            shift_data_next  => shift_data_out_sig    -- Data output from the config block
         );
-
+    shift_data_in_sig <= tdc_config_data_in;
+    shift_clk_in_sig <= tdc_config_clk_in;  
+    tdc_config_data_out <= shift_data_out_sig;   
 end Structural;
 

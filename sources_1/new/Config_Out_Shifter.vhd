@@ -84,8 +84,9 @@ begin
         end if;
     end process;
     
-    process(config_clk_delayed, reset, uart_tx_start_pulse)
+    process(config_clk_delayed, shift_reg, reset, uart_tx_start_pulse, uart_tx_data_sig)
     begin
+        uart_tx_data_sig <= uart_tx_data_sig;
         if reset = '1' then
             -- Reset the shift register
             shift_reg <= (others => '0');
@@ -104,7 +105,7 @@ begin
                 end if;
             end if;
             if uart_tx_start_pulse = '1' then
-                uart_tx_data_sig <= shift_reg (55 downto 48);         
+                uart_tx_data_sig <= shift_reg(55 downto 48);         
             end if;     
         end if; 
     end process;

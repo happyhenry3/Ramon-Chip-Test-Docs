@@ -36,9 +36,9 @@ entity Config_In_Shifter is
            reset : in STD_LOGIC;
            uart_rx_data : in STD_LOGIC_VECTOR(7 downto 0);
            uart_rx_ready : in STD_LOGIC;
-           last_bit_out : out STD_LOGIC;
-           config_clk: out STD_LOGIC;
-           config_clk_en: out STD_LOGIC);
+           last_bit_out : out STD_LOGIC; -- last bit of shift register to output to chip
+           config_clk: out STD_LOGIC; -- slowed down to 4kHz
+           config_clk_en: out STD_LOGIC); -- enable config_clk for transmission to chip
 end Config_In_Shifter;
 
 architecture Behavioral of Config_In_Shifter is
@@ -78,8 +78,8 @@ begin
     end process;
     config_clk <= config_clk_reg;
     config_clk_en <= config_clk_en_sig;
-        -- Process to load data into the shift register
-    process(uart_rx_ready, reset, config_clk_reg)
+    -- Process to load data into the shift register
+    process(uart_rx_ready, uart_rx_data, load_position, reset, config_clk_reg)
     begin
         if reset = '1' then
             -- Reset the shift register and load position
@@ -88,19 +88,20 @@ begin
         else 
             if uart_rx_ready = '1' then
                 -- Load data into the appropriate 8-bit section of the shift register
-                shift_reg((load_position + 1) * 8 - 1 downto load_position * 8) <= uart_rx_data;
+                shift_reg(((load_position + 1) * 8 - 1) downto (load_position * 8)) <= uart_rx_data(7 downto 0);
                 
             end if;
-        end if;
-            if config_clk_en_sig = '1' and rising_edge(config_clk_reg) then
+        
+            if rising_edge(config_clk_reg) then
                  -- Shift out 1 bit at a time from the shift register
                 shift_reg <= '0' & shift_reg(55 downto 1);
                 last_bit_out <= shift_reg(0);    
             end if;
+        end if;
     end process;
     
     
-    load_shift_seq: process(clk, reset)
+    load_shift_seq: process(clk, reset) --Sequential process to update the load position and shift counters
     begin
         if reset = '1' then
             load_position <= 0;
@@ -118,16 +119,16 @@ begin
         load_position_next <= load_position;
         shift_count_next <= shift_count;
         if uart_rx_ready = '1' then
-            load_position_next <= load_position + 1;
+            load_position_next <= load_position + 1; --Update position in shift reg to load
         end if;
         if config_clk_reg = '1' then
-            shift_count_next <= shift_count + 1;
+            shift_count_next <= shift_count + 1;    -- Count number of bits shifted into chip
         end if;
         if load_position = 7 then
-            load_position_next <= 0;      
+            load_position_next <= 0;     --when all bits populated, reset position
         else 
             if shift_count = 56 then
-                shift_count_next <= 0;          
+                shift_count_next <= 0;       -- When everything shifted into chip, reset counter   
             end if;    
         end if; 
     end process;  
@@ -137,18 +138,18 @@ begin
         if rising_edge(clk) then
             if reset = '1' then
                 config_clk_en_sig <= '0';
-            else config_clk_en_sig <= config_clk_en_next;
+            else config_clk_en_sig <= config_clk_en_next;  -- update enable signal for config clock
             end if;
         end if; 
     end process;
     
-    config_clk_en_comb: process(load_position, shift_count)
+    config_clk_en_comb: process(load_position, config_clk_en_sig, shift_count)
     begin
         config_clk_en_next <= config_clk_en_sig;
         if load_position = 7 then
-            config_clk_en_next <= '1';
+            config_clk_en_next <= '1';      -- enable config clock for shifting in after all bits are loaded
         else 
-            if shift_count = 56 then
+            if shift_count = 56 then        -- disable config clock after all bits are shifted into the chip
                 config_clk_en_next <= '0';
             end if;    
         end if;
