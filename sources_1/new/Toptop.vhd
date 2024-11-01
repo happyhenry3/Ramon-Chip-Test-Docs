@@ -66,10 +66,10 @@ begin
             clk_100M          => clk_100M,          -- 100MHz clock input
             resetn            => resetn,     
             config_data_back  => config_data_out_sig,
+--            config_data_back  => config_data_sig,
             tdc_data_back     => tdc_data_out_sig,        -- Reset signal
             uart_rx           => uart_rx,
             uart_tx           => uart_tx,
---            config_data_out   => config_data_out_sig,   -- Configuration data out input
             config_load       => config_load_sig,   -- Internal load signal
             config_clk        => config_clk_sig,    -- Internal clock signal
             config_data       => config_data_sig,   -- Configuration data signal

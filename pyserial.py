@@ -55,19 +55,22 @@ def receive_data():
 
 
 # Define the binary bitstream
-bitstream_org = "01001000011001010110110001101100011011110101011101101111"
+bitstream_org = "11001000011001010110110001101100011011110101011101101111"
 bitstream_zeros = "00000000000000000000000000000000000000000000000000000000"
+bitstream_kk = "01101010011010110110101101101011011010110110101101101100"
+bitstream_hello = "01001000011001010110110001101100011011110101011101101111"
+bitstream_01 = "00110000001100010011000000110001001100000011000100110000"
 # Split bitstream into 8-bit chunks
-byte_strings = [bitstream_zeros[i:i+8] for i in range(0, len(bitstream_zeros), 8)]
+byte_strings = [bitstream_01[i:i+8] for i in range(0, 56, 8)]
 
 # Convert each 8-bit chunk to an integer, then to a single byte, and store in a bytes object
 bitstream_encoded = bytes(int(b, 2) for b in byte_strings)
 
-print(f"Send before conversion: {bitstream_zeros}")
+print(f"Send before conversion: {bitstream_01}")
 # Send and receive an example message
 send_data(bitstream_encoded)  # Send message to FPGA
 # send_data_bits()
-time.sleep(1)          # Wait briefly for FPGA to respond
+time.sleep(2)          # Wait briefly for FPGA to respond
 bitstream_response = receive_data()  # Read the response
 bitstream_decoded = ''.join(format(byte, '08b') for byte in bitstream_response)
 print(f"Received after conversion: {bitstream_decoded}")

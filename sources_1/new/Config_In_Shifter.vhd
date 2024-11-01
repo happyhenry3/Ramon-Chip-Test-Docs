@@ -52,7 +52,8 @@ architecture Behavioral of Config_In_Shifter is
     
     signal clk_div_counter : integer := 0;
     signal config_clk_reg  : STD_LOGIC := '1';
-    constant CLK_DIV : integer := 25000;
+    constant CLK_DIV : integer := 500000;
+--    CONSTANT uart_rx_data_hard : STD_LOGIC_VECTOR(55 downto 0) := "01001001011001010110110001101100011011110101011101101111";
     
 begin
 
@@ -79,23 +80,25 @@ begin
     config_clk <= config_clk_reg;
     config_clk_en <= config_clk_en_sig;
     -- Process to load data into the shift register
-    process(uart_rx_ready, uart_rx_data, load_position, reset, config_clk_reg)
+    process(clk, uart_rx_ready, uart_rx_data, shift_reg, load_position, reset, config_clk_reg)
     begin
         if reset = '1' then
             -- Reset the shift register and load position
             shift_reg <= (others => '0');
             last_bit_out <= '0';
         else 
-            if uart_rx_ready = '1' then
-                -- Load data into the appropriate 8-bit section of the shift register
-                shift_reg(((load_position + 1) * 8 - 1) downto (load_position * 8)) <= uart_rx_data(7 downto 0);
-                
-            end if;
+            if rising_edge(clk) then
+                if uart_rx_ready = '1' then
+                    -- Load data into the appropriate 8-bit section of the shift register
+                    shift_reg(((load_position + 1) * 8 - 1) downto (load_position * 8)) <= uart_rx_data(7 downto 0);
+    --                shift_reg(((load_position + 1) * 8 - 1) downto (load_position * 8)) <= uart_rx_data_hard(((load_position + 1) * 8 - 1) downto (load_position * 8));
+                end if;           
         
-            if rising_edge(config_clk_reg) then
-                 -- Shift out 1 bit at a time from the shift register
-                shift_reg <= '0' & shift_reg(55 downto 1);
-                last_bit_out <= shift_reg(0);    
+                if config_clk_reg = '1' then
+                     -- Shift out 1 bit at a time from the shift register
+                    shift_reg <= '0' & shift_reg(55 downto 1);
+                    last_bit_out <= shift_reg(0);    
+                end if;
             end if;
         end if;
     end process;

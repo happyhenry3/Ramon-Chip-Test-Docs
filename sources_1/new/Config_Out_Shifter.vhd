@@ -52,14 +52,14 @@ architecture Behavioral of Config_Out_Shifter is
     signal config_clk_rising_flag : std_logic := '0';
     signal config_clk_falling_flag : std_logic := '0';
 --    signal config_clk_en_delayed : std_logic := '0';
-    constant DELAY_250 : integer := 25000;
+    constant DELAY_250 : integer := 500000;
     signal clk_div_counter : integer := 0;
     signal config_clk_delayed  : STD_LOGIC := '0';
     
     signal uart_tx_start_sig: STD_LOGIC := '0';
     signal uart_tx_start_sig_d : std_logic := '0';
     signal uart_tx_start_pulse: STD_LOGIC := '0';
-    constant CLK_DIV : integer := 25000;
+    constant CLK_DIV : integer := 500000;
 begin
     
     config_clk_gen_process: process(clk)
@@ -67,7 +67,7 @@ begin
         if rising_edge(clk) then
             if reset = '1' then
                 clk_div_counter <= 0;
-                config_clk_delayed <= '1';
+                config_clk_delayed <= '0';
                 
             else
                 if config_clk_en = '1' then
@@ -84,7 +84,7 @@ begin
         end if;
     end process;
     
-    process(config_clk_delayed, shift_reg, reset, uart_tx_start_pulse, uart_tx_data_sig)
+    process(clk, config_clk_delayed, shift_reg, reset, uart_tx_start_pulse, uart_tx_data_sig)
     begin
         uart_tx_data_sig <= uart_tx_data_sig;
         if reset = '1' then
@@ -94,19 +94,21 @@ begin
             uart_tx_start_sig <= '0';
             uart_tx_data_sig <= (others => '0');
         else
-            if rising_edge(config_clk_delayed) then
-                shift_reg <= data_back & shift_reg(55 downto 1);  -- Shift and load new byte
-                shift_counter <= shift_counter + 1;
-                if shift_counter = 7 then
-                    shift_counter <= 0;
-                    uart_tx_start_sig <= '1';
-                else 
-                    uart_tx_start_sig <= '0';    
+            if rising_edge(clk) then
+                if config_clk_delayed = '1' then
+                    shift_reg <= data_back & shift_reg(55 downto 1);  -- Shift and load new byte
+                    shift_counter <= shift_counter + 1;
+                    if shift_counter = 7 then
+                        shift_counter <= 0;
+                        uart_tx_start_sig <= '1';
+                    else 
+                        uart_tx_start_sig <= '0';    
+                    end if;
                 end if;
-            end if;
-            if uart_tx_start_pulse = '1' then
-                uart_tx_data_sig <= shift_reg(55 downto 48);         
-            end if;     
+                if uart_tx_start_pulse = '1' then
+                    uart_tx_data_sig <= shift_reg(7 downto 0);         
+                end if;     
+           end if; 
         end if; 
     end process;
 

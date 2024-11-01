@@ -42,7 +42,8 @@ architecture Behavioral of Toptop_tb is
     constant baud_period : time := 104.167 us;
     type uart_data_array is array (0 to 6) of STD_LOGIC_VECTOR(7 downto 0);
     constant uart_data : uart_data_array := (x"49", x"65", x"6c", x"6c", x"6f", x"57", x"6f"); --"HelloWo"
-
+    constant wait_time : time := 500 ms;
+    
 begin
 
     -- Instantiate the DUT (Toptop)
@@ -95,11 +96,11 @@ begin
         end loop;
 
         -- Check if tx_busy_test remains high after "Hello" transmission
-        wait for clk_period * 100;
+        wait for wait_time;
 
         -- Start sending the UART data (the string "Hello" in ASCII)
         -- ASCII values for "Hello" are: 'H' = 0x48, 'e' = 0x65, 'l' = 0x6C, 'l' = 0x6C, 'o' = 0x6F
-        wait for 20 ms;
+--        wait for 20 ms;
         for n in 0 to 6 loop
             -- Start bit
             uart_rx <= '0';
