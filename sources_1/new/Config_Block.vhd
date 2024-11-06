@@ -24,6 +24,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity Config_Block is
     Port (
+        clk : in std_logic;
 --        resetn : in std_logic;
         shift_clk_in    : in  std_logic;
 --        shift_load_in   : in  std_logic;
@@ -58,6 +59,7 @@ begin
     gen_shift_cells: for i in 0 to 55 generate
         config_cell_inst: entity work.Config_Cell
             port map (
+                clk => clk,
                 shift_clk       => shift_clk_in,       -- Clock input
 --                shift_load      => shift_load_in,      -- Load input
                 shift_data_prev => shift_data_signals(i),      -- Data input

@@ -33,6 +33,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity Chip is
     Port ( 
+           clk : in STD_LOGIC;
 --           resetn : in STD_LOGIC;
 --           tdc_input : in STD_LOGIC;
 --           tdc_reset : in STD_LOGIC;
@@ -56,6 +57,7 @@ begin
     -- Instantiate the config block (Shift_Register_Array)
     config_block_inst: entity work.Config_Block
         port map (
+            clk => clk,
 --            resetn => resetn,
             shift_clk_in    => shift_clk_in_sig,     -- Clock input for the config block
 --            shift_load_in   => tdc_config_load_in,    -- Load input for the config block

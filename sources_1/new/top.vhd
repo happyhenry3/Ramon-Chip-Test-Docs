@@ -60,9 +60,10 @@ architecture Behavioral of Top is
 
     signal reset : STD_LOGIC;
     signal config_clk_sig : STD_LOGIC;
-    signal config_data_in_sig : STD_LOGIC;
+    signal config_data_sig : STD_LOGIC;
     signal config_load_sig : STD_LOGIC;
     signal config_hard_stream_sig : STD_LOGIC;
+    signal config_data_back_sig : STD_LOGIC;
     
     signal config_clk_en_sig : STD_LOGIC;
     
@@ -120,7 +121,7 @@ begin
         reset => reset,
         uart_rx_data => uart_rx_data_sig,
         uart_rx_ready => uart_rx_ready_sig,
-        last_bit_out => config_data,
+        last_bit_out => config_data_sig,
         config_clk => config_clk_sig,
         config_clk_en => config_clk_en_sig
     );
@@ -130,7 +131,7 @@ begin
         clk => clk_100M,
         config_clk_en => config_clk_en_sig,
         reset => reset,
-        data_back => config_data_back,
+        data_back => config_data_back_sig,
         uart_tx_data => uart_tx_data_sig,
         uart_tx_start => uart_tx_start_sig
     );
@@ -146,7 +147,9 @@ begin
     );
 
     -- Output assignments
-    config_clk <= config_clk_sig;
+    config_clk <=  config_clk_sig;
+    config_data <=  config_data_sig; --temporarily make these 3 not
+    config_data_back_sig <=  config_data_back;
 --    config_load   <= config_load_sig;
 --    config_data <= config_data_in_sig;
     

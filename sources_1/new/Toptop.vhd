@@ -37,7 +37,15 @@ entity Toptop is
            uart_rx : in STD_LOGIC;
            uart_tx : out STD_LOGIC;
 --           rx_ready_test: out STD_LOGIC;
-           rx_data_test: out STD_LOGIC_VECTOR(7 downto 0));
+           rx_data_test: out STD_LOGIC_VECTOR(7 downto 0);
+           
+           config_clk_to_opto: out STD_LOGIC;
+           config_clk_from_opto: in STD_LOGIC;
+           config_data_to_opto: out STD_LOGIC;
+           config_data_from_opto: in STD_LOGIC;
+           config_data_back_to_opto: out STD_LOGIC;
+           config_data_back_from_opto: in STD_LOGIC
+           );
 --           config_data_out : out STD_LOGIC;
 --           tdc_data_out : out STD_LOGIC);
 end Toptop;
@@ -57,22 +65,66 @@ architecture Structural of Toptop is
     
     signal ro_out_sig       : STD_LOGIC;
     signal tdc_data_out_sig : STD_LOGIC;
+    
+    signal uart_rx_sync: STD_LOGIC;
+    signal config_clk_from_opto_sync: STD_LOGIC;
+    signal config_data_from_opto_sync: STD_LOGIC;
+    signal config_data_back_from_opto_sync: STD_LOGIC;
+    signal not_config_clk_from_opto_sync: STD_LOGIC;
+    signal not_config_data_from_opto_sync: STD_LOGIC;
+    signal not_config_data_back_from_opto_sync: STD_LOGIC;
 --    signal chip_config_data_out_sig : STD_LOGIC;
+
 begin
+
+    not_config_clk_from_opto_sync <= not config_clk_from_opto_sync;
+    not_config_data_from_opto_sync <= not config_data_from_opto_sync;
+    not_config_data_back_from_opto_sync <= not config_data_back_from_opto_sync;
+    
+    sync_uart_rx: entity work.synchroniser
+    Port map (
+        clk => clk_100M,
+        async_in => uart_rx,
+        sync_out => uart_rx_sync
+    );
+
+    sync_config_clk_from_opto: entity work.synchroniser
+    Port map (
+        clk => clk_100M,
+        async_in => config_clk_from_opto,
+        sync_out => config_clk_from_opto_sync
+    );
+
+    sync_config_data_from_opto: entity work.synchroniser
+    Port map (
+        clk => clk_100M,
+        async_in => config_data_from_opto,
+        sync_out => config_data_from_opto_sync
+    );
+
+    sync_config_data_back_from_opto: entity work.synchroniser
+        Port map (
+            clk => clk_100M,
+            async_in => config_data_back_from_opto,
+            sync_out => config_data_back_from_opto_sync
+        );
+        
 
     -- Instantiate the `Top` module
     Top: entity work.Top
         Port map (
             clk_100M          => clk_100M,          -- 100MHz clock input
             resetn            => resetn,     
-            config_data_back  => config_data_out_sig,
---            config_data_back  => config_data_sig,
+            config_data_back  => config_data_back_from_opto_sync,
+--            config_data_back  => config_data_out_sig,
             tdc_data_back     => tdc_data_out_sig,        -- Reset signal
-            uart_rx           => uart_rx,
+            uart_rx           => uart_rx_sync,
             uart_tx           => uart_tx,
-            config_load       => config_load_sig,   -- Internal load signal
-            config_clk        => config_clk_sig,    -- Internal clock signal
-            config_data       => config_data_sig,   -- Configuration data signal
+--            config_load       => config_load_sig,   -- Internal load signal
+--            config_clk        => config_clk_sig,    -- Internal clock signal
+--            config_data       => config_data_sig,   -- Configuration data signal
+            config_clk        => config_clk_to_opto,    -- Internal clock signal
+            config_data       => config_data_to_opto,   -- Configuration data signal
 --            config_data_check => config_data_check_sig, -- Configuration data check output
             tdc_input         => tdc_input_sig,     -- TDC input signal
             tdc_reset         => tdc_reset_sig,     -- TDC reset signal
@@ -83,18 +135,23 @@ begin
         
     Chip: entity work.Chip
         Port map (
+            clk => clk_100M,
 --            resetn => resetn,
 --            tdc_input            => tdc_input_sig,         -- Input from Top
 --            tdc_reset            => tdc_reset_sig,         -- Reset from Top
 --            read_enable          => read_enable_sig,       -- Read enable from Top
 --            tdc_data_clk_in      => data_clk_sig,          -- Data clock from Top
 --            tdc_config_load_in   => config_load_sig,       -- Config load signal from Top
-            tdc_config_clk_in    => config_clk_sig,        -- Config clock signal from Top
-            tdc_config_data_in   => config_data_sig,       -- Config data signal from Top
+--            tdc_config_clk_in    => config_clk_sig,        -- Config clock signal from Top
+--            tdc_config_data_in   => config_data_sig,       -- Config data signal from Top
+--            tdc_config_data_out  => config_data_out_sig  -- Config data output (internal signal)
+            tdc_config_clk_in    => config_clk_from_opto_sync,        -- Config clock signal from Top
+            tdc_config_data_in   => config_data_from_opto_sync,       -- Config data signal from Top
 --            ro_out               => ro_out_sig,            -- RO output (internal signal)
 --            tdc_data_out         => tdc_data_out_sig,      -- TDC data output (internal signal)
-            tdc_config_data_out  => config_data_out_sig  -- Config data output (internal signal)
+            tdc_config_data_out  => config_data_back_to_opto  -- Config data output (internal signal)
         );
+        
         
 --            keep_on_process: process(clk_100M, resetn)
 --        begin
