@@ -37,7 +37,7 @@ architecture Behavioral of Top_tb is
     -- Characters in "Hello" in ASCII
     type uart_data_array is array (0 to 6) of STD_LOGIC_VECTOR(7 downto 0);
     constant uart_data : uart_data_array := (x"49", x"65", x"6c", x"6c", x"6f", x"57", x"6f");
-    constant config_clk_period : time := 250 us; --500 us
+    constant config_clk_period : time := 5 ms; --500 us
 begin
 
     -- Instantiate the Unit Under Test (UUT)
@@ -46,16 +46,16 @@ begin
             clk_100M => clk_100M,
             resetn => resetn,
             config_data_back => config_data_back,
-            tdc_data_back => tdc_data_back,
+--            tdc_data_back => tdc_data_back,
             uart_rx => uart_rx,
             uart_tx => uart_tx,
-            config_load => config_load,
-            config_clk => config_clk,
-            config_data => config_data,
-            tdc_input => tdc_input,
-            tdc_reset => tdc_reset,
-            read_enable => read_enable,
-            data_clk => data_clk
+            config_load_inv => config_load,
+            config_clk_inv => config_clk,
+            config_data_inv => config_data
+--            tdc_input => tdc_input,
+--            tdc_reset => tdc_reset,
+--            read_enable => read_enable,
+--            data_clk => data_clk
 --            test_fpga_sw7 => test_fpga_sw7,
 --            test_fpga_led7 => test_fpga_led7,
 --            test_fpga_buttonc => test_fpga_buttonc,
@@ -107,7 +107,7 @@ begin
         for j in 0 to 6 loop
             -- Sending 8 data bits for each character in "Hello"
             for i in 0 to 7 loop
-                config_data_back <= uart_data(j)(i);
+                config_data_back <= not uart_data(j)(i);
                 wait for config_clk_period;
             end loop;
 

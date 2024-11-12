@@ -76,10 +76,6 @@ architecture Structural of Toptop is
 --    signal chip_config_data_out_sig : STD_LOGIC;
 
 begin
-
-    not_config_clk_from_opto_sync <= not config_clk_from_opto_sync;
-    not_config_data_from_opto_sync <= not config_data_from_opto_sync;
-    not_config_data_back_from_opto_sync <= not config_data_back_from_opto_sync;
     
     sync_uart_rx: entity work.synchroniser
     Port map (

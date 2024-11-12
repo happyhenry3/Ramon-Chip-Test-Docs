@@ -106,7 +106,10 @@ begin
                     end if;
                 end if;
                 if uart_tx_start_pulse = '1' then
-                    uart_tx_data_sig <= shift_reg(7 downto 0);         
+--                    uart_tx_data_sig <= shift_reg(7 downto 0);
+                    uart_tx_data_sig <= shift_reg(0) & shift_reg(1) & shift_reg(2) & shift_reg(3) & 
+                    shift_reg(4) & shift_reg(5) & shift_reg(6) & shift_reg(7);
+         
                 end if;     
            end if; 
         end if; 

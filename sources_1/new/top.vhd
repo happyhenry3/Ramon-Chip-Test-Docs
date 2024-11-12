@@ -35,18 +35,18 @@ entity Top is
     Port ( clk_100M : in STD_LOGIC;
            resetn : in STD_LOGIC;
            config_data_back : in STD_LOGIC;
-           tdc_data_back : in STD_LOGIC;
+--           tdc_data_back : in STD_LOGIC;
            uart_rx: in STD_LOGIC;
            uart_tx: out STD_LOGIC;
 --           config_data_out: in STD_LOGIC;
-           config_load : out STD_LOGIC;
-           config_clk : out STD_LOGIC;
-           config_data : out STD_LOGIC;
+           config_load_inv : out STD_LOGIC;
+           config_clk_inv : out STD_LOGIC;
+           config_data_inv : out STD_LOGIC;
 --           config_data_check : out STD_LOGIC;
-           tdc_input : out STD_LOGIC;
-           tdc_reset : out STD_LOGIC;
-           read_enable : out STD_LOGIC;
-           data_clk : out STD_LOGIC;
+--           tdc_input : out STD_LOGIC;
+--           tdc_reset : out STD_LOGIC;
+--           read_enable : out STD_LOGIC;
+--           data_clk : out STD_LOGIC;
            rx_data_test: out STD_LOGIC_VECTOR(7 downto 0));
            
 --           test_fpga_sw7 : in STD_LOGIC;
@@ -60,10 +60,13 @@ architecture Behavioral of Top is
 
     signal reset : STD_LOGIC;
     signal config_clk_sig : STD_LOGIC;
+--    signal config_clk_inv : STD_LOGIC;
     signal config_data_sig : STD_LOGIC;
+--    signal config_data_inv : STD_LOGIC;
     signal config_load_sig : STD_LOGIC;
-    signal config_hard_stream_sig : STD_LOGIC;
-    signal config_data_back_sig : STD_LOGIC;
+--    signal config_load_inv : STD_LOGIC;
+    
+--    signal config_hard_stream_sig : STD_LOGIC;
     
     signal config_clk_en_sig : STD_LOGIC;
     
@@ -80,18 +83,50 @@ architecture Behavioral of Top is
     signal uart_tx_start_sig : STD_LOGIC;
     signal uart_tx_busy_sig : STD_LOGIC;
     signal uart_rx_data_test_sig: STD_LOGIC;
-     
-
+    
+    signal uart_rx_sync: STD_LOGIC;
+    signal config_data_back_sync: STD_LOGIC;
+    signal config_data_back_inv: STD_LOGIC;
+    signal tdc_data_back_sync: STD_LOGIC;
+    signal tdc_data_back_inv: STD_LOGIC;
+    
 begin
 
     reset <= not resetn;
---    test_fpga_led7 <= test_fpga_sw7;
---    test_fpga_led6 <= test_fpga_buttonc;
+    config_clk_inv <= not config_clk_sig;
+    config_data_inv <= not config_data_sig;
+    config_load_inv <= not config_load_sig;
+    config_data_back_inv <= not config_data_back_sync;
+    
+
+    sync_uart_rx: entity work.synchroniser
+    Port map (
+        clk => clk_100M,
+        async_in => uart_rx,
+        sync_out => uart_rx_sync
+    );
+
+    sync_config_data_from_opto: entity work.synchroniser
+    Port map (
+        clk => clk_100M,
+        async_in => config_data_back,
+        sync_out => config_data_back_sync
+    );
+    
+--    sync_tdc_data_from_opto: entity work.synchroniser
+--    Port map (
+--        clk => clk_100M,
+--        async_in => tdc_data_back,
+--        sync_out => tdc_data_back_sync
+--    );
+
+
+
     UART: entity work.UART
     Port map (
         clk_100M => clk_100M,  -- 100MHz clock
         reset => reset, -- Asynchronous reset
-        rx => uart_rx,  -- UART receive line (from PC)
+        rx => uart_rx_sync,  -- UART receive line (from PC)
         tx => uart_tx,  -- UART transmit line (to PC)
         rx_data => uart_rx_data_sig, -- Received data byte
         rx_ready => uart_rx_ready_sig,  -- Data ready flag
@@ -123,7 +158,8 @@ begin
         uart_rx_ready => uart_rx_ready_sig,
         last_bit_out => config_data_sig,
         config_clk => config_clk_sig,
-        config_clk_en => config_clk_en_sig
+        config_clk_en => config_clk_en_sig,
+        config_load => config_load_sig
     );
     
     Config_Out_Shifter: entity work.Config_Out_Shifter
@@ -131,25 +167,24 @@ begin
         clk => clk_100M,
         config_clk_en => config_clk_en_sig,
         reset => reset,
-        data_back => config_data_back_sig,
+        data_back => config_data_back_inv,
         uart_tx_data => uart_tx_data_sig,
         uart_tx_start => uart_tx_start_sig
     );
     
     -- Instantiate the clock generator module
-    Stream_Generator: entity work.Stream_Generator
-    Port map (
-        clk_in     => clk_100M,           -- 100MHz input clock from board
-        reset      => reset,            -- Reset signal
---        clk_config => config_clk_sig,   -- Internal signal for 20kHz clock
-        config_load   => config_load_sig,      -- Internal signal for step output
-        config_stream_out => config_hard_stream_sig
-    );
+--    Stream_Generator: entity work.Stream_Generator
+--    Port map (
+--        clk_in     => clk_100M,           -- 100MHz input clock from board
+--        reset      => reset,            -- Reset signal
+----        clk_config => config_clk_sig,   -- Internal signal for 20kHz clock
+--        config_load   => config_load_sig,      -- Internal signal for step output
+--        config_stream_out => config_hard_stream_sig
+--    );
 
     -- Output assignments
-    config_clk <=  config_clk_sig;
-    config_data <=  config_data_sig; --temporarily make these 3 not
-    config_data_back_sig <=  config_data_back;
+--    config_clk <=  config_clk_sig;
+--    config_data <=  config_data_sig;
 --    config_load   <= config_load_sig;
 --    config_data <= config_data_in_sig;
     
@@ -161,18 +196,18 @@ begin
         tdc_reset => tdc_reset_sig
     );
     
-    tdc_input <= tdc_input_sig;
-    tdc_reset <= tdc_reset_sig; 
+--    tdc_input <= tdc_input_sig;
+--    tdc_reset <= tdc_reset_sig; 
     
-    Serial_Out: entity work.Serial_Out
-    Port map(
-        clk_in => clk_100M,
-        reset => reset,
-        read_enable => read_enable_sig,
-        data_clk => data_clk_sig
-    );
-    read_enable <= read_enable_sig;
-    data_clk <= data_clk_sig;
+--    Serial_Out: entity work.Serial_Out
+--    Port map(
+--        clk_in => clk_100M,
+--        reset => reset,
+--        read_enable => read_enable_sig,
+--        data_clk => data_clk_sig
+--    );
+--    read_enable <= read_enable_sig;
+--    data_clk <= data_clk_sig;
     
 --    Chip: entity work.Chip
 --    Port map(
