@@ -52,7 +52,7 @@ architecture Behavioral of Config_In_Shifter is
     signal load_position, load_position_next : integer range 0 to 7; -- To track load position for 8-bit chunks
     signal shift_count, shift_count_next : integer range 0 to 57 := 0; -- To count bits shifted out
     
-    signal clk_div_counter_square, clk_div_counter_pulse : integer := 0;
+    signal clk_div_counter_square, clk_div_counter_pulse, load_counter : integer := 0;
     signal config_clk_reg : STD_LOGIC;
 --    signal config_clk_reg_prev : STD_LOGIC;
     signal config_clk_edge : STD_LOGIC;
@@ -67,7 +67,7 @@ begin
     config_clk_gen_process: process(clk, reset)
     begin
             if reset = '1' then
-                clk_div_counter_square <= CLK_DIV - 10;
+                clk_div_counter_square <= CLK_DIV - 1000;
 --                clk_div_counter_pulse <= CLK_DIV;
                 clk_div_counter_pulse <= CLK_DIV*2 - 1;
                 config_clk_reg <= '1';   
@@ -120,11 +120,6 @@ begin
                 end if;
             end if;
         end if;
-    end process;
-    
-    en_fall: process(clk, reset)
-    begin
-    
     end process;
     
     load_shift_seq: process(clk, reset) --Sequential process to update the load position and shift counters
@@ -184,7 +179,7 @@ begin
         end if;
     end process;
     
-    load_gen: process(clk, reset, shift_count, config_clk_edge)
+    load_gen: process(clk, reset, shift_count, config_clk_edge, config_load_sig)
     begin
         if reset = '1' then
             config_load_sig <= '0';
@@ -192,11 +187,15 @@ begin
             if rising_edge(clk) then
                 if shift_count = 57 then
                     config_load_sig <= '1';
---                else 
---                    if config_clk_edge <= '1' then
---                        config_load_sig <= '0';
---                    end if;
-                end if;
+                end if; 
+                if config_load_sig = '1' then
+                    if load_counter = (CLK_DIV - 1) then
+                        config_load_sig <= '0';
+                        load_counter <= 0;
+                    else
+                        load_counter <= load_counter + 1;
+                    end if;
+                end if;                   
             end if;
         end if;
     end process;            

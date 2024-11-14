@@ -43,37 +43,32 @@ entity Top is
            config_clk_inv : out STD_LOGIC;
            config_data_inv : out STD_LOGIC;
 --           config_data_check : out STD_LOGIC;
---           tdc_input : out STD_LOGIC;
+           tdc_input_switch : in STD_LOGIC;
+           tdc_input_inv : out STD_LOGIC;
+           tdc_data_out_button : in STD_LOGIC;
 --           tdc_reset : out STD_LOGIC;
---           read_enable : out STD_LOGIC;
---           data_clk : out STD_LOGIC;
+           read_enable_inv : out STD_LOGIC;
+           data_clk_inv : out STD_LOGIC;
            rx_data_test: out STD_LOGIC_VECTOR(7 downto 0));
            
---           test_fpga_sw7 : in STD_LOGIC;
---           test_fpga_led7 : out STD_LOGIC;
---           test_fpga_buttonc : in STD_LOGIC;
---           test_fpga_led6: out STD_LOGIC;
---           tx_busy_test: out STD_LOGIC);
 end Top;
 
 architecture Behavioral of Top is
 
     signal reset : STD_LOGIC;
     signal config_clk_sig : STD_LOGIC;
---    signal config_clk_inv : STD_LOGIC;
     signal config_data_sig : STD_LOGIC;
---    signal config_data_inv : STD_LOGIC;
     signal config_load_sig : STD_LOGIC;
---    signal config_load_inv : STD_LOGIC;
-    
---    signal config_hard_stream_sig : STD_LOGIC;
-    
+     
     signal config_clk_en_sig : STD_LOGIC;
     
     signal tdc_input_sig : STD_LOGIC;
+    signal tdc_input_switch_sync : STD_LOGIC;
     signal tdc_reset_sig : STD_LOGIC;  
     signal read_enable_sig : STD_LOGIC;
     signal data_clk_sig : STD_LOGIC;  
+    signal tdc_data_out_button_sync : STD_LOGIC;
+    signal tdc_data_out_button_sig : STD_LOGIC;
     
     signal uart_rx_sig : STD_LOGIC;
     signal uart_tx_sig : STD_LOGIC;
@@ -97,6 +92,9 @@ begin
     config_data_inv <= not config_data_sig;
     config_load_inv <= not config_load_sig;
     config_data_back_inv <= not config_data_back_sync;
+    tdc_input_inv <= not tdc_input_sig;
+    read_enable_inv <= not read_enable_sig;
+    data_clk_inv <= not data_clk_sig;
     
 
     sync_uart_rx: entity work.synchroniser
@@ -112,15 +110,36 @@ begin
         async_in => config_data_back,
         sync_out => config_data_back_sync
     );
+
+    sync_tdc_input: entity work.synchroniser
+    Port map (
+        clk => clk_100M,
+        async_in => tdc_input_switch,
+        sync_out => tdc_input_switch_sync
+    );
+
+    tdc_input_debounce: entity work.debounce
+    Port map (
+        clk => clk_100M,
+        reset_n => resetn,
+        button => tdc_input_switch_sync,
+        result => tdc_input_sig
+    );
+
+    sync_tdc_out: entity work.synchroniser
+    Port map (
+        clk => clk_100M,
+        async_in => tdc_data_out_button,
+        sync_out => tdc_data_out_button_sync
+    );
     
---    sync_tdc_data_from_opto: entity work.synchroniser
---    Port map (
---        clk => clk_100M,
---        async_in => tdc_data_back,
---        sync_out => tdc_data_back_sync
---    );
-
-
+    tdc_data_out_debounce: entity work.debounce
+    Port map (
+        clk => clk_100M,
+        reset_n => resetn,
+        button => tdc_data_out_button_sync,
+        result => tdc_data_out_button_sig
+    );
 
     UART: entity work.UART
     Port map (
@@ -172,6 +191,15 @@ begin
         uart_tx_start => uart_tx_start_sig
     );
     
+   Data_Out: entity work.Data_Out
+   Port map (
+    clk => clk_100M,
+    resetn => resetn,
+    button_in => tdc_data_out_button_sig,
+    read_enable => read_enable_sig,
+    data_clk => data_clk_sig
+   );
+    
     -- Instantiate the clock generator module
 --    Stream_Generator: entity work.Stream_Generator
 --    Port map (
@@ -188,13 +216,13 @@ begin
 --    config_load   <= config_load_sig;
 --    config_data <= config_data_in_sig;
     
-    TDC_Control: entity work.TDC_Control
-    Port map(
-        clk_in     => clk_100M,           -- 100MHz input clock from board
-        reset      => reset,            -- Reset signal
-        tdc_input => tdc_input_sig,
-        tdc_reset => tdc_reset_sig
-    );
+--    TDC_Control: entity work.TDC_Control
+--    Port map(
+--        clk_in     => clk_100M,           -- 100MHz input clock from board
+--        reset      => reset,            -- Reset signal
+--        tdc_input => tdc_input_sig,
+--        tdc_reset => tdc_reset_sig
+--    );
     
 --    tdc_input <= tdc_input_sig;
 --    tdc_reset <= tdc_reset_sig; 
